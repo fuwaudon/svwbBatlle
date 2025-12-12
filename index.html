@@ -56,16 +56,13 @@
 </div>
 
 <script>
-/* 🔥 追加した PWA Service Worker 登録コード（ここだけ変更） */
-if ("serviceWorker" in navigator) {
+  
+if ("serviceWorker" in navigator) /{
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js");
   });
 }
-
-
-/* ここから下はあなたが送ったコードそのまま */
-
+  
 const firebaseConfig = {
   apiKey: "AIzaSyCoghsP1GravcmQ_mwOR5rwp8A2ScHQFF8",
   authDomain: "sv-tracker-f342b.firebaseapp.com",
