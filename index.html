@@ -5,120 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0d1117">
 <title>SV 勝率トラッカー</title>
-
 <link rel="manifest" href="manifest.json">
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{
-  font-family:system-ui,-apple-system,sans-serif;
-  background:#0d1117;color:#e6edf3;
-  min-height:100vh;padding:1rem;line-height:1.5;
-}
-.container{max-width:500px;margin:0 auto;}
-h1{text-align:center;color:#58a6ff;font-size:1.6rem;margin-bottom:1rem;padding-bottom:0.8rem;border-bottom:1px solid #30363d;}
-
-.total-games{text-align:center;font-size:1.4rem;color:#79c0ff;margin:1.5rem 0;}
-
-.login-area{text-align:center;margin:1.5rem 0;}
-#login-btn{background:#1DA1F2;color:white;padding:0.9rem 1.5rem;border-radius:8px;font-weight:bold;font-size:1.1rem;}
-#logout-btn{background:#666;color:#fff;padding:0.5rem 1rem;border-radius:6px;margin-top:0.5rem;font-size:0.9rem;display:none;}
-
-section{
-  background:#161b22;border:1px solid #30363d;
-  border-radius:12px;padding:1.2rem;margin-bottom:1.5rem;
-}
-
-h2{
-  color:#79c0ff;font-size:1.25rem;margin-bottom:1rem;
-}
-
-input,select,button{
-  width:100%;padding:0.85rem;margin:0.6rem 0;
-  border-radius:8px;border:none;font-size:1rem;
-}
-input,select{
-  background:#0d1117;color:#e6edf3;border:1px solid #30363d;
-}
-button{
-  background:#238636;color:white;font-weight:bold;cursor:pointer;
-}
-button:active{opacity:0.8;}
-
-.row{display:flex;gap:0.8rem;}
-.row button{width:auto;flex:1;padding:0.9rem;}
-
-.win-btn{background:#238636;}
-.lose-btn{background:#da3633;}
-.delete-btn{background:#da3633;padding:0.4rem 0.9rem;font-size:1.3rem;width:auto;margin-left:0.8rem;}
-
-ul{list-style:none;}
-li{
-  background:#0d1117;padding:0.9rem;margin-bottom:0.6rem;
-  border-radius:8px;display:flex;justify-content:space-between;
-  align-items:center;border:1px solid #30363d;
-}
-
-.class-title{
-  color:#58a6ff;font-weight:bold;font-size:1.2rem;margin:1.2rem 0 0.8rem;
-}
-
-table{
-  width:100%;border-collapse:collapse;margin-top:1rem;
-  background:#0d1117;border-radius:8px;overflow:hidden;
-}
-th,td{padding:0.9rem;text-align:center;border-bottom:1px solid #30363d;}
-th{background:#1f6feb;color:white;font-weight:bold;}
-
-.hidden{display:none;}
-
-canvas{max-width:280px;margin:1.5rem auto;display:block;}
+*{margin:0;padding:0;box-sizing:border-box;}body{font-family:system-ui,-apple-system,sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh;padding:1rem;line-height:1.5;}.container{max-width:500px;margin:0 auto;}h1{text-align:center;color:#58a6ff;font-size:1.6rem;margin-bottom:1rem;padding-bottom:0.8rem;border-bottom:1px solid #30363d;}.total-games{text-align:center;font-size:1.4rem;color:#79c0ff;margin:1.5rem 0;}.login-area{text-align:center;margin:1.5rem 0;}#login-btn{background:#1DA1F2;color:white;padding:0.9rem 1.5rem;border-radius:8px;font-weight:bold;font-size:1.1rem;}#logout-btn{background:#666;color:#fff;padding:0.5rem 1rem;border-radius:6px;margin-top:0.5rem;font-size:0.9rem;display:none;}section{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:1.2rem;margin-bottom:1.5rem;}h2{color:#79c0ff;font-size:1.25rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}.collapsible-content{max-height:240px;overflow-y:auto;padding-top:0.5rem;scrollbar-width:thin;}.collapsible-content::-webkit-scrollbar{width:6px;}.collapsible-content::-webkit-scrollbar-track{background:#161b22;}.collapsible-content::-webkit-scrollbar-thumb{background:#58a6ff;border-radius:3px;}input,select,button{width:100%;padding:0.85rem;margin:0.6rem 0;border-radius:8px;border:none;font-size:1rem;}input,select{background:#0d1117;color:#e6edf3;border:1px solid #30363d;}button{background:#238636;color:white;font-weight:bold;cursor:pointer;}button:active{opacity:0.8;}.row{display:flex;gap:0.8rem;}.row button{width:auto;flex:1;padding:0.9rem;}.win-btn{background:#238636;}.lose-btn{background:#da3633;}.delete-btn{background:#da3633;padding:0.4rem 0.9rem;font-size:1.3rem;width:auto;margin-left:0.8rem;}ul{list-style:none;}li{background:#0d1117;padding:0.9rem;margin-bottom:0.6rem;border-radius:8px;display:flex;justify-content:space-between;align-items:center;border:1px solid #30363d;}.class-title{color:#58a6ff;font-weight:bold;font-size:1.2rem;margin:1.2rem 0 0.8rem;}table{width:100%;border-collapse:collapse;margin-top:1rem;background:#0d1117;border-radius:8px;overflow:hidden;}th,td{padding:0.9rem;text-align:center;border-bottom:1px solid #30363d;}th{background:#1f6feb;color:white;font-weight:bold;}.hidden{display:none;}canvas{max-width:280px;margin:1.5rem auto;display:block;}
 </style>
 </head>
-
 <body>
 <div class="container">
   <h1>Shadowverse 勝率トラッカー</h1>
-
   <div class="login-area">
     <button id="login-btn">Xでログイン（データ永続化）</button>
     <button id="logout-btn">ログアウト</button>
     <p style="margin-top:0.8rem;font-size:0.9rem;color:#888;">ログインしなくても使えます</p>
   </div>
-
   <div class="total-games">総対戦数: <span id="total-games">0</span> 戦</div>
 
-  <!-- 自分のデッキ -->
   <section>
-    <h2>自分のデッキ（最大10個）</h2>
+    <h2 id="mydeck-toggle">自分のデッキ（最大10個）</h2>
     <div class="row">
       <input type="text" id="mydeck-input" placeholder="デッキ名" maxlength="20">
       <button id="add-mydeck" style="width:auto;padding:0.85rem 1.2rem;">追加</button>
     </div>
-    <ul id="mydeck-list"></ul>
+    <div id="mydeck-list-wrapper" class="collapsible-content"><ul id="mydeck-list"></ul></div>
   </section>
 
-  <!-- 相手デッキ -->
   <section>
-    <h2>相手デッキ登録・一覧</h2>
+    <h2 id="oppdeck-toggle" class="collapsed">相手デッキ登録・一覧</h2>
     <select id="opp-class">
       <option value="">- クラスを選択 -</option>
-      <option>エルフ</option><option>ロイヤル</option><option>ウィッチ</option>
-      <option>ドラゴン</option><option>ナイトメア</option><option>ビショップ</option><option>ネメシス</option>
+      <option>エルフ</option><option>ロイヤル</option><option>ウィッチ</option><option>ドラゴン</option><option>ナイトメア</option><option>ビショップ</option><option>ネメシス</option>
     </select>
-
     <input type="text" id="opp-name" placeholder="デッキ名（空欄可）">
     <button id="add-oppdeck">登録</button>
-
-    <div id="oppdeck-container"></div>
+    <div id="oppdeck-container" class="collapsible-content"></div>
   </section>
 
-  <!-- 対戦登録 -->
   <section>
     <h2>対戦登録</h2>
     <select id="select-mydeck"><option>自分のデッキを選択</option></select>
@@ -126,36 +51,26 @@ canvas{max-width:280px;margin:1.5rem auto;display:block;}
     <div class="row"><button class="win-btn">勝利</button><button class="lose-btn">敗北</button></div>
   </section>
 
-  <!-- 勝率表示 -->
   <section>
     <h2>勝率詳細</h2>
     <select id="stats-mydeck"><option>デッキを選択</option></select>
-
     <div id="overall-stats" class="hidden" style="text-align:center;">
       <h3 id="deck-title" style="color:#79c0ff;"></h3>
       <canvas id="winrate-chart"></canvas>
-      <p style="font-size:1.3rem;margin:1rem 0;">
-        総試合数: <span id="total">0</span>　
-        勝利: <span id="wins">0</span>　
-        勝率: <span id="rate">0</span>%
-      </p>
+      <p style="font-size:1.3rem;margin:1rem 0;">総試合数: <span id="total">0</span>　勝利: <span id="wins">0</span>　勝率: <span id="rate">0</span>%</p>
       <button id="show-detail" style="background:#1f6feb;">対戦相手別詳細</button>
       <div id="detail-stats"></div>
     </div>
   </section>
-
 </div>
 
-<!-- ここからJS -->
 <script>
-// Service Worker 登録
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js");
   });
 }
 
-// Firebase 初期化
 const firebaseConfig = {
   apiKey: "AIzaSyCoghsP1GravcmQ_mwOR5rwp8A2ScHQFF8",
   authDomain: "sv-tracker-f342b.firebaseapp.com",
@@ -169,46 +84,83 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-let myDecks=[],oppDecks=[],records=[],userId=null,chart=null;
+let myDecks=[], oppDecks=[], records=[], userId=null, chart=null;
 const classOrder=['エルフ','ロイヤル','ウィッチ','ドラゴン','ナイトメア','ビショップ','ネメシス'];
 
 auth.onAuthStateChanged(u=>{
   userId=u?u.uid:null;
-  document.getElementById('login-btn').classList.toggle('hidden',!!u);
-  document.getElementById('logout-btn').classList.toggle('hidden',!u);
-  u?loadFromCloud():loadFromLocal();
+  document.getElementById('login-btn').classList.toggle('hidden', !!u);
+  document.getElementById('logout-btn').classList.toggle('hidden', !u);
+  u ? loadFromCloud() : loadFromLocal();
   renderAll();
 });
-
-document.getElementById('login-btn').onclick=()=>{
-  const p=new firebase.auth.TwitterAuthProvider();
-  auth.signInWithPopup(p);
-};
+document.getElementById('login-btn').onclick=()=>{ const p=new firebase.auth.TwitterAuthProvider(); auth.signInWithPopup(p); };
 document.getElementById('logout-btn').onclick=()=>auth.signOut();
 
-// Local / Cloud Save
-function saveToLocal(){localStorage.myDecks=JSON.stringify(myDecks);localStorage.oppDecks=JSON.stringify(oppDecks);localStorage.records=JSON.stringify(records);}
-function loadFromLocal(){myDecks=JSON.parse(localStorage.myDecks||'[]');oppDecks=JSON.parse(localStorage.oppDecks||'[]');records=JSON.parse(localStorage.records||'[]');}
-function saveToCloud(){if(!userId)return saveToLocal();db.collection('users').doc(userId).set({myDecks,oppDecks,records,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}
-function loadFromCloud(){if(!userId)return;db.collection('users').doc(userId).onSnapshot(d=>{if(d.exists){const o=d.data();myDecks=o.myDecks||[];oppDecks=o.oppDecks||[];records=o.records||[];renderAll();}},()=>loadFromLocal());}
+function saveToLocal(){
+  localStorage.myDecks=JSON.stringify(myDecks);
+  localStorage.oppDecks=JSON.stringify(oppDecks);
+  localStorage.records=JSON.stringify(records);
+}
+function loadFromLocal(){
+  myDecks=JSON.parse(localStorage.myDecks||'[]');
+  oppDecks=JSON.parse(localStorage.oppDecks||'[]');
+  records=JSON.parse(localStorage.records||'[]');
+}
+function saveToCloud(){ if(!userId) return saveToLocal();
+  db.collection('users').doc(userId).set({myDecks,oppDecks,records,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+}
+function loadFromCloud(){ if(!userId) return;
+  db.collection('users').doc(userId).onSnapshot(d=>{
+    if(d.exists){ const o=d.data(); myDecks=o.myDecks||[]; oppDecks=o.oppDecks||[]; records=o.records||[]; renderAll(); }
+  },()=>loadFromLocal());
+}
 
-function saveAll(){saveToCloud();saveToLocal();}
+function renderAll(){
+  renderMyDecks();
+  renderOppDecks();
+  renderSelects();
+  renderStatsSelect();
+  document.getElementById('total-games').textContent=records.length;
+}
 
-// 🟦 自分のデッキ表示
+document.getElementById('mydeck-toggle').onclick=function(){
+  document.getElementById('mydeck-list-wrapper').classList.toggle('collapsed');
+  this.classList.toggle('collapsed');
+};
+document.getElementById('oppdeck-toggle').onclick=function(){
+  document.getElementById('oppdeck-container').classList.toggle('collapsed');
+  this.classList.toggle('collapsed');
+};
+
+document.getElementById('add-mydeck').onclick=()=>{
+  const n=document.getElementById('mydeck-input').value.trim();
+  if(!n) return alert('名前入力');
+  if(myDecks.length>=10) return alert('最大10');
+  if(myDecks.includes(n)) return alert('既に有り');
+  myDecks.push(n);
+  saveAll();
+  document.getElementById('mydeck-input').value='';
+  renderMyDecks();
+  renderSelects();
+  renderStatsSelect();
+};
+
 function renderMyDecks(){
-  const ul=document.getElementById('mydeck-list');
-  ul.innerHTML='';
+  const ul=document.getElementById('mydeck-list'); ul.innerHTML='';
   myDecks.forEach(d=>{
     const li=document.createElement('li');
     li.innerHTML=`<span>${d}</span>`;
     const b=document.createElement('button');
-    b.textContent='×';
-    b.className='delete-btn';
+    b.textContent='×'; b.className='delete-btn';
     b.onclick=()=>{
       if(confirm(d+'削除？')){
         myDecks=myDecks.filter(x=>x!==d);
         records=records.filter(r=>r.myDeck!==d);
-        saveAll();renderMyDecks();renderSelects();renderStatsSelect();
+        saveAll();
+        renderMyDecks();
+        renderSelects();
+        renderStatsSelect();
       }
     };
     li.appendChild(b);
@@ -216,13 +168,24 @@ function renderMyDecks(){
   });
 }
 
-// 🟦 相手デッキ一覧
+document.getElementById('add-oppdeck').onclick=()=>{
+  const c=document.getElementById('opp-class').value;
+  const n=document.getElementById('opp-name').value.trim()||'名無し';
+  if(!c) return alert('クラス選択');
+  const k=`${c}::${n}`;
+  if(oppDecks.includes(k)) return alert('既に有り');
+  oppDecks.push(k);
+  saveAll();
+  document.getElementById('opp-name').value='';
+  renderOppDecks();
+  renderSelects();
+};
+
 function renderOppDecks(){
-  const c=document.getElementById('oppdeck-container');
-  c.innerHTML='';
+  const c=document.getElementById('oppdeck-container'); c.innerHTML='';
   classOrder.forEach(cl=>{
     const list=oppDecks.filter(x=>x.startsWith(cl+'::'));
-    if(!list.length)return;
+    if(!list.length) return;
     const div=document.createElement('div');
     div.innerHTML=`<div class="class-title">${cl}</div><ul></ul>`;
     const ul=div.querySelector('ul');
@@ -230,13 +193,13 @@ function renderOppDecks(){
       const [_,n]=k.split('::');
       const li=document.createElement('li');
       li.innerHTML=`<span>${n} <small>(${cl})</small></span>`;
-      const b=document.createElement('button');
-      b.textContent='×';
-      b.className='delete-btn';
+      const b=document.createElement('button'); b.textContent='×'; b.className='delete-btn';
       b.onclick=()=>{
         oppDecks=oppDecks.filter(x=>x!==k);
         records=records.filter(r=>r.oppDeck!==k);
-        saveAll();renderOppDecks();renderSelects();
+        saveAll();
+        renderOppDecks();
+        renderSelects();
       };
       li.appendChild(b);
       ul.appendChild(li);
@@ -245,7 +208,6 @@ function renderOppDecks(){
   });
 }
 
-// 🟦 セレクト更新
 function renderSelects(){
   const m=document.getElementById('select-mydeck');
   const o=document.getElementById('select-oppdeck');
@@ -258,31 +220,23 @@ function renderSelects(){
   });
 }
 
-// 🟦 勝敗記録
 document.querySelector('.win-btn').onclick=()=>record(true);
 document.querySelector('.lose-btn').onclick=()=>record(false);
-
 function record(w){
   const m=document.getElementById('select-mydeck').value;
   const o=document.getElementById('select-oppdeck').value;
-  if(!m||!o)return alert('両方選択して');
+  if(!m||!o) return alert('両方選択して');
   records.push({myDeck:m,oppDeck:o,win:w,date:Date.now()});
-  saveAll();document.getElementById('select-oppdeck').value='';
+  saveAll();
+  document.getElementById('select-oppdeck').value='';
   renderSelects();
   alert('登録しました');
-}
-
-// 🟦 勝率詳細
-function renderStatsSelect(){
-  const s=document.getElementById('stats-mydeck');
-  s.innerHTML='<option>デッキを選択</option>';
-  myDecks.forEach(d=>s.add(new Option(d,d)));
 }
 
 document.getElementById('stats-mydeck').onchange=e=>{
   const d=e.target.value;
   const box=document.getElementById('overall-stats');
-  if(!d){box.classList.add('hidden');return;}
+  if(!d){ box.classList.add('hidden'); return; }
   const r=records.filter(x=>x.myDeck===d);
   const w=r.filter(x=>x.win).length;
   const t=r.length;
@@ -292,7 +246,7 @@ document.getElementById('stats-mydeck').onchange=e=>{
   document.getElementById('wins').textContent=w;
   document.getElementById('rate').textContent=rate;
   box.classList.remove('hidden');
-  if(chart)chart.destroy();
+  if(chart) chart.destroy();
   chart=new Chart(document.getElementById('winrate-chart'),{
     type:'doughnut',
     data:{labels:['勝利','敗北'],datasets:[{data:[w,t-w],backgroundColor:['#238636','#da3633'],borderWidth:0}]},
@@ -300,7 +254,6 @@ document.getElementById('stats-mydeck').onchange=e=>{
   });
 };
 
-// 🟦 相手別詳細
 document.getElementById('show-detail').onclick=()=>{
   const d=document.getElementById('stats-mydeck').value;
   const div=document.getElementById('detail-stats');
@@ -308,32 +261,20 @@ document.getElementById('show-detail').onclick=()=>{
   records.filter(r=>r.myDeck===d).forEach(r=>{
     map[r.oppDeck]=(map[r.oppDeck]||{win:0,total:0});
     map[r.oppDeck].total++;
-    if(r.win)map[r.oppDeck].win++;
+    if(r.win) map[r.oppDeck].win++;
   });
   let h='<table><tr><th>相手</th><th>対戦</th><th>勝</th><th>勝率</th></tr>';
   Object.keys(map).sort((a,b)=>map[b].total-map[a].total).forEach(k=>{
-    const [c,n]=k.split('::');
-    const o=map[k];
-    const r=Math.round(o.win/o.total*1000)/10;
+    const [c,n]=k.split('::'); const o=map[k]; const r=Math.round(o.win/o.total*1000)/10;
     h+=`<tr><td>${n} (${c})</td><td>${o.total}</td><td>${o.win}</td><td>${r}%</td></tr>`;
   });
   div.innerHTML=h+'</table>';
   div.classList.toggle('hidden');
 };
 
-// 初期ロード
-function renderAll(){
-  renderMyDecks();
-  renderOppDecks();
-  renderSelects();
-  renderStatsSelect();
-  document.getElementById('total-games').textContent=records.length;
-}
+function saveAll(){ saveToCloud(); saveToLocal(); }
 
-loadFromLocal();
-renderAll();
-
+loadFromLocal(); renderAll();
 </script>
-
 </body>
 </html>
