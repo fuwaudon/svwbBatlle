@@ -54,26 +54,46 @@ canvas{max-width:280px;margin:1.5rem auto;display:block;}
   </div>
   <div class="total-games">総対戦数: <span id="total-games">0</span> 戦</div>
 
-  <section><h2 id="mydeck-toggle">自分のデッキ（最大10個）</h2>
-    <div class="row"><input type="text" id="mydeck-input" placeholder="デッキ名" maxlength="20">
-      <button id="add-mydeck" style="width:auto;padding:0.85rem 1.2rem;">追加</button></div>
-    <div id="mydeck-list-wrapper" class="collapsible-content"><ul id="mydeck-list"></ul></div>
+  <section>
+    <h2 id="mydeck-toggle">自分のデッキ（最大10個）</h2>
+    <div class="row">
+      <input type="text" id="mydeck-input" placeholder="デッキ名" maxlength="20">
+      <button id="add-mydeck" style="width:auto;padding:0.85rem 1.2rem;">追加</button>
+    </div>
+    <div id="mydeck-list-wrapper" class="collapsible-content">
+      <ul id="mydeck-list"></ul>
+    </div>
   </section>
 
-  <section><h2 id="oppdeck-toggle" class="collapsed">相手デッキ登録・一覧</h2>
-    <select id="opp-class"><option value="">- クラスを選択 -</option><option>エルフ</option><option>ロイヤル</option><option>ウィッチ</option><option>ドラゴン</option><option>ナイトメア</option><option>ビショップ</option><option>ネメシス</option></select>
+  <section>
+    <h2 id="oppdeck-toggle" class="collapsed">相手デッキ登録・一覧</h2>
+    <select id="opp-class">
+      <option value="">- クラスを選択 -</option>
+      <option>エルフ</option>
+      <option>ロイヤル</option>
+      <option>ウィッチ</option>
+      <option>ドラゴン</option>
+      <option>ナイトメア</option>
+      <option>ビショップ</option>
+      <option>ネメシス</option>
+    </select>
     <input type="text" id="opp-name" placeholder="デッキ名（空欄可）">
     <button id="add-oppdeck">登録</button>
     <div id="oppdeck-container" class="collapsible-content"></div>
   </section>
 
-  <section><h2>対戦登録</h2>
+  <section>
+    <h2>対戦登録</h2>
     <select id="select-mydeck"><option>自分のデッキを選択</option></select>
     <select id="select-oppdeck"><option>相手のデッキを選択</option></select>
-    <div class="row"><button class="win-btn">勝利</button><button class="lose-btn">敗北</button></div>
+    <div class="row">
+      <button class="win-btn">勝利</button>
+      <button class="lose-btn">敗北</button>
+    </div>
   </section>
 
-  <section><h2>勝率詳細</h2>
+  <section>
+    <h2>勝率詳細</h2>
     <select id="stats-mydeck"><option>デッキを選択</option></select>
     <div id="overall-stats" class="hidden" style="text-align:center;">
       <h3 id="deck-title" style="color:#79c0ff;"></h3>
@@ -86,12 +106,12 @@ canvas{max-width:280px;margin:1.5rem auto;display:block;}
 </div>
 
 <script>
-// PWA 登録
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => { navigator.serviceWorker.register("./sw.js"); });
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js");
+  });
 }
 
-// Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCoghsP1GravcmQ_mwOR5rwp8A2ScHQFF8",
   authDomain: "sv-tracker-f342b.firebaseapp.com",
@@ -105,138 +125,187 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-let myDecks=[], oppDecks=[], records=[], userId=null, chart=null;
+let myDecks=[],oppDecks=[],records=[],userId=null,chart=null;
 const classOrder=['エルフ','ロイヤル','ウィッチ','ドラゴン','ナイトメア','ビショップ','ネメシス'];
 
-// ログイン状態変化
+// --- Firebase Auth ---
 auth.onAuthStateChanged(u=>{
   userId = u ? u.uid : null;
   document.getElementById('login-btn').classList.toggle('hidden', !!u);
   document.getElementById('logout-btn').classList.toggle('hidden', !u);
   u ? loadFromCloud() : loadFromLocal();
   renderAll();
+  renderStatsSelect(); // ← ここ重要
 });
-document.getElementById('login-btn').onclick = ()=>{ auth.signInWithPopup(new firebase.auth.TwitterAuthProvider()); };
-document.getElementById('logout-btn').onclick = ()=>auth.signOut();
 
-// 保存・読み込み
-function saveToLocal(){ localStorage.myDecks=JSON.stringify(myDecks); localStorage.oppDecks=JSON.stringify(oppDecks); localStorage.records=JSON.stringify(records);}
-function loadFromLocal(){ myDecks=JSON.parse(localStorage.myDecks||'[]'); oppDecks=JSON.parse(localStorage.oppDecks||'[]'); records=JSON.parse(localStorage.records||'[]'); }
-function saveToCloud(){ if(!userId) return saveToLocal(); db.collection('users').doc(userId).set({myDecks, oppDecks, records, updatedAt: firebase.firestore.FieldValue.serverTimestamp()}); }
-function loadFromCloud(){ if(!userId) return; db.collection('users').doc(userId).onSnapshot(d=>{ if(d.exists){ const o=d.data(); myDecks=o.myDecks||[]; oppDecks=o.oppDecks||[]; records=o.records||[]; renderAll(); }}, ()=>loadFromLocal()); }
+document.getElementById('login-btn').onclick = ()=> {
+  const p = new firebase.auth.TwitterAuthProvider();
+  auth.signInWithPopup(p);
+};
+document.getElementById('logout-btn').onclick = ()=> auth.signOut();
 
-// デッキ表示
+// --- Local / Cloud Save ---
+function saveToLocal() { localStorage.myDecks=JSON.stringify(myDecks); localStorage.oppDecks=JSON.stringify(oppDecks); localStorage.records=JSON.stringify(records);}
+function loadFromLocal() { myDecks=JSON.parse(localStorage.myDecks||'[]'); oppDecks=JSON.parse(localStorage.oppDecks||'[]'); records=JSON.parse(localStorage.records||'[]');}
+function saveToCloud(){if(!userId) return saveToLocal(); db.collection('users').doc(userId).set({myDecks,oppDecks,records,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}
+function loadFromCloud(){if(!userId) return; db.collection('users').doc(userId).onSnapshot(d=>{if(d.exists){const o=d.data(); myDecks=o.myDecks||[]; oppDecks=o.oppDecks||[]; records=o.records||[]; renderAll(); renderStatsSelect(); }}, ()=>loadFromLocal());}
+
+// --- Render ---
 function renderAll(){
   renderMyDecks();
   renderOppDecks();
   renderSelects();
-  renderStatsSelect(); // ← ここ重要
-  document.getElementById('total-games').textContent = records.length;
+  renderStatsSelect();
+  document.getElementById('total-games').textContent=records.length;
 }
 
-// Collapsible
-document.getElementById('mydeck-toggle').onclick = ()=>{ document.getElementById('mydeck-list-wrapper').classList.toggle('collapsed'); };
-document.getElementById('oppdeck-toggle').onclick = ()=>{ document.getElementById('oppdeck-container').classList.toggle('collapsed'); };
+// --- Collapsible ---
+document.getElementById('mydeck-toggle').onclick=()=>document.getElementById('mydeck-list-wrapper').classList.toggle('collapsed');
+document.getElementById('oppdeck-toggle').onclick=()=>document.getElementById('oppdeck-container').classList.toggle('collapsed');
 
-// 自分のデッキ
-document.getElementById('add-mydeck').onclick = ()=>{
+// --- My Deck ---
+document.getElementById('add-mydeck').onclick = () => {
   const n = document.getElementById('mydeck-input').value.trim();
-  if(!n) return alert('名前入力'); 
-  if(myDecks.length>=10) return alert('最大10'); 
+  if(!n) return alert('名前入力');
+  if(myDecks.length>=10) return alert('最大10');
   if(myDecks.includes(n)) return alert('既に有り');
-  myDecks.push(n); saveAll(); 
-  document.getElementById('mydeck-input').value=''; 
-  renderAll();
+  myDecks.push(n);
+  saveAll();
+  document.getElementById('mydeck-input').value='';
+  renderMyDecks();
+  renderSelects();
+  renderStatsSelect(); // ← ここ
 };
+
 function renderMyDecks(){
-  const ul = document.getElementById('mydeck-list'); ul.innerHTML='';
+  const ul=document.getElementById('mydeck-list');
+  ul.innerHTML='';
   myDecks.forEach(d=>{
-    const li=document.createElement('li'); li.innerHTML=`<span>${d}</span>`;
-    const b=document.createElement('button'); b.textContent='×'; b.className='delete-btn';
-    b.onclick = ()=>{ if(confirm(d+'削除？')){ myDecks=myDecks.filter(x=>x!==d); records=records.filter(r=>r.myDeck!==d); saveAll(); renderAll(); }};
-    li.appendChild(b); ul.appendChild(li);
+    const li=document.createElement('li');
+    li.innerHTML=`<span>${d}</span>`;
+    const b=document.createElement('button');
+    b.textContent='×';
+    b.className='delete-btn';
+    b.onclick=()=>{
+      if(confirm(d+'削除？')){
+        myDecks=myDecks.filter(x=>x!==d);
+        records=records.filter(r=>r.myDeck!==d);
+        saveAll();
+        renderMyDecks();
+        renderSelects();
+        renderStatsSelect();
+      }
+    };
+    li.appendChild(b);
+    ul.appendChild(li);
   });
 }
 
-// 相手デッキ
-document.getElementById('add-oppdeck').onclick = ()=>{
+// --- Opp Deck ---
+document.getElementById('add-oppdeck').onclick = () => {
   const c=document.getElementById('opp-class').value;
   const n=document.getElementById('opp-name').value.trim()||'名無し';
   if(!c) return alert('クラス選択');
-  const k=`${c}::${n}`; if(oppDecks.includes(k)) return alert('既に有り');
-  oppDecks.push(k); saveAll(); document.getElementById('opp-name').value='';
-  renderOppDecks(); renderSelects();
+  const k=`${c}::${n}`;
+  if(oppDecks.includes(k)) return alert('既に有り');
+  oppDecks.push(k);
+  saveAll();
+  document.getElementById('opp-name').value='';
+  renderOppDecks();
+  renderSelects();
 };
+
 function renderOppDecks(){
-  const c = document.getElementById('oppdeck-container'); c.innerHTML='';
+  const c=document.getElementById('oppdeck-container');
+  c.innerHTML='';
   classOrder.forEach(cl=>{
-    const list = oppDecks.filter(x=>x.startsWith(cl+'::')); if(!list.length) return;
-    const div = document.createElement('div'); div.innerHTML=`<div class="class-title">${cl}</div><ul></ul>`;
-    const ul = div.querySelector('ul');
+    const list=oppDecks.filter(x=>x.startsWith(cl+'::'));
+    if(!list.length) return;
+    const div=document.createElement('div');
+    div.innerHTML=`<div class="class-title">${cl}</div><ul></ul>`;
+    const ul=div.querySelector('ul');
     list.forEach(k=>{
-      const [_, n] = k.split('::');
-      const li = document.createElement('li'); li.innerHTML=`<span>${n} (${cl})</span>`;
-      const b = document.createElement('button'); b.textContent='×'; b.className='delete-btn';
-      b.onclick = ()=>{ oppDecks=oppDecks.filter(x=>x!==k); records=records.filter(r=>r.oppDeck!==k); saveAll(); renderAll(); };
-      li.appendChild(b); ul.appendChild(li);
+      const [_,n]=k.split('::');
+      const li=document.createElement('li');
+      li.innerHTML=`<span>${n} <small>(${cl})</small></span>`;
+      const b=document.createElement('button');
+      b.textContent='×';
+      b.className='delete-btn';
+      b.onclick=()=>{
+        oppDecks=oppDecks.filter(x=>x!==k);
+        records=records.filter(r=>r.oppDeck!==k);
+        saveAll();
+        renderOppDecks();
+        renderSelects();
+      };
+      li.appendChild(b);
+      ul.appendChild(li);
     });
     c.appendChild(div);
   });
 }
 
-// セレクト更新
+// --- Selects ---
 function renderSelects(){
-  const m=document.getElementById('select-mydeck'); const o=document.getElementById('select-oppdeck');
-  m.innerHTML='<option>自分のデッキを選択</option>'; o.innerHTML='<option>相手のデッキを選択</option>';
+  const m=document.getElementById('select-mydeck');
+  const o=document.getElementById('select-oppdeck');
+  m.innerHTML='<option>自分のデッキを選択</option>';
+  o.innerHTML='<option>相手のデッキを選択</option>';
   myDecks.forEach(d=>m.add(new Option(d,d)));
-  oppDecks.forEach(k=>{ const [c,n]=k.split('::'); o.add(new Option(`${n} (${c})`,k)); });
+  oppDecks.forEach(k=>{
+    const [c,n]=k.split('::');
+    o.add(new Option(`${n} (${c})`,k));
+  });
 }
 
-// 勝率詳細用セレクト
+// --- Stats Select ---
 function renderStatsSelect(){
-  const statsSelect = document.getElementById('stats-mydeck');
-  statsSelect.innerHTML='<option>デッキを選択</option>';
-  myDecks.forEach(d=>statsSelect.add(new Option(d,d)));
+  const sel = document.getElementById('stats-mydeck');
+  sel.innerHTML = '<option>デッキを選択</option>';
+  myDecks.forEach(d => sel.add(new Option(d,d)));
 }
 
-// 対戦記録
-document.querySelector('.win-btn').onclick = ()=>record(true);
-document.querySelector('.lose-btn').onclick = ()=>record(false);
+// --- Record ---
+document.querySelector('.win-btn').onclick=()=>record(true);
+document.querySelector('.lose-btn').onclick=()=>record(false);
+
 function record(w){
   const m=document.getElementById('select-mydeck').value;
   const o=document.getElementById('select-oppdeck').value;
   if(!m||!o) return alert('両方選択して');
-  records.push({myDeck:m, oppDeck:o, win:w, date:Date.now()});
+  records.push({myDeck:m,oppDeck:o,win:w,date:Date.now()});
   saveAll();
   document.getElementById('select-oppdeck').value='';
-  renderAll();
+  renderSelects();
+  alert('登録しました');
 }
 
-// 勝率詳細表示
-document.getElementById('stats-mydeck').onchange = e=>{
-  const d = e.target.value; const box = document.getElementById('overall-stats');
-  if(!d){box.classList.add('hidden'); return;}
-  const r = records.filter(x=>x.myDeck===d);
-  const w = r.filter(x=>x.win).length;
-  const t = r.length;
-  const rate = t ? Math.round(w/t*1000)/10 : 0;
+// --- Stats ---
+document.getElementById('stats-mydeck').onchange=e=>{
+  const d=e.target.value;
+  const box=document.getElementById('overall-stats');
+  if(!d){ box.classList.add('hidden'); return; }
+  const r=records.filter(x=>x.myDeck===d);
+  const w=r.filter(x=>x.win).length;
+  const t=r.length;
+  const rate=t?Math.round(w/t*1000)/10:0;
   document.getElementById('deck-title').textContent=d;
   document.getElementById('total').textContent=t;
   document.getElementById('wins').textContent=w;
   document.getElementById('rate').textContent=rate;
   box.classList.remove('hidden');
   if(chart) chart.destroy();
-  chart = new Chart(document.getElementById('winrate-chart'), {
+  chart=new Chart(document.getElementById('winrate-chart'),{
     type:'doughnut',
-    data:{labels:['勝利','敗北'], datasets:[{data:[w,t-w], backgroundColor:['#238636','#da3633'], borderWidth:0}]},
-    options:{responsive:true, plugins:{legend:{position:'bottom', labels:{color:'#e6edf3'}}}}
+    data:{labels:['勝利','敗北'],datasets:[{data:[w,t-w],backgroundColor:['#238636','#da3633'],borderWidth:0}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#e6edf3'}}}}
   });
 };
 
-// 対戦相手別詳細
-document.getElementById('show-detail').onclick = ()=>{
-  const d = document.getElementById('stats-mydeck').value;
-  const div = document.getElementById('detail-stats'); const map={};
+document.getElementById('show-detail').onclick=()=>{
+  const d=document.getElementById('stats-mydeck').value;
+  const div=document.getElementById('detail-stats');
+  const map={};
   records.filter(r=>r.myDeck===d).forEach(r=>{
     map[r.oppDeck]=(map[r.oppDeck]||{win:0,total:0});
     map[r.oppDeck].total++;
@@ -244,16 +313,22 @@ document.getElementById('show-detail').onclick = ()=>{
   });
   let h='<table><tr><th>相手</th><th>対戦</th><th>勝</th><th>勝率</th></tr>';
   Object.keys(map).sort((a,b)=>map[b].total-map[a].total).forEach(k=>{
-    const [c,n]=k.split('::'); const o=map[k]; const r=Math.round(o.win/o.total*1000)/10;
+    const [c,n]=k.split('::');
+    const o=map[k];
+    const r=Math.round(o.win/o.total*1000)/10;
     h+=`<tr><td>${n} (${c})</td><td>${o.total}</td><td>${o.win}</td><td>${r}%</td></tr>`;
   });
   div.innerHTML=h+'</table>';
   div.classList.toggle('hidden');
 };
 
-function saveAll(){ saveToCloud(); saveToLocal(); }
+// --- Save ---
+function saveAll(){saveToCloud();saveToLocal();}
 
-loadFromLocal(); renderAll();
+// --- Initial Load ---
+loadFromLocal();
+renderAll();
+renderStatsSelect(); // ← 初回も忘れず
 </script>
 </body>
 </html>
